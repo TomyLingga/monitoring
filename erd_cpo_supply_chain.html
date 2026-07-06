@@ -1,0 +1,240 @@
+<h2 class="sr-only">ERD alur bisnis CPO: pengadaan, produksi, penjualan, hingga keuangan</h2>
+<style>
+#erd svg.erDiagram .divider path { stroke-opacity: 0.5; }
+#erd svg.erDiagram .row-rect-odd path,
+#erd svg.erDiagram .row-rect-odd rect,
+#erd svg.erDiagram .row-rect-even path,
+#erd svg.erDiagram .row-rect-even rect { stroke: none !important; }
+</style>
+<div id="erd"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+const def = `erDiagram
+  SUPPLIER ||--o{ KONTRAK_CPO : menyuplai
+  KONTRAK_CPO ||--o{ INCOMING_CPO : mengirim
+  STORAGE ||--o{ INCOMING_CPO : menerima
+  STORAGE ||--o{ STOK_PRODUK : menyimpan
+  MASTER_PRODUK ||--o{ STOK_PRODUK : tercatat_sebagai
+  MASTER_PRODUK ||--o{ BAHAN_REFINERY : dipakai_di
+  MASTER_PRODUK ||--o{ HASIL_REFINERY : dihasilkan_sebagai
+  PROSES_REFINERY ||--o{ BAHAN_REFINERY : mengonsumsi
+  PROSES_REFINERY ||--o{ HASIL_REFINERY : menghasilkan
+  MASTER_PRODUK ||--o{ BAHAN_FRAKSINASI : dipakai_di
+  MASTER_PRODUK ||--o{ HASIL_FRAKSINASI : dihasilkan_sebagai
+  PROSES_FRAKSINASI ||--o{ BAHAN_FRAKSINASI : mengonsumsi
+  PROSES_FRAKSINASI ||--o{ HASIL_FRAKSINASI : menghasilkan
+  MASTER_PRODUK ||--o{ BAHAN_PACKAGING : dipakai_di
+  MASTER_PRODUK ||--o{ HASIL_PACKAGING : dihasilkan_sebagai
+  PROSES_PACKAGING ||--o{ BAHAN_PACKAGING : mengonsumsi
+  PROSES_PACKAGING ||--o{ HASIL_PACKAGING : menghasilkan
+  BUYER ||--o{ KONTRAK_PENJUALAN : memesan
+  MASTER_PRODUK ||--o{ KONTRAK_PENJUALAN : dijual_sebagai
+  KONTRAK_PENJUALAN ||--o{ PENGIRIMAN_PENJUALAN : direalisasi_oleh
+  PENGIRIMAN_PENJUALAN ||--o{ INVOICE : ditagih_dengan
+  PENGIRIMAN_PENJUALAN ||--o{ TRUCKING : diangkut_oleh
+  INVOICE ||--o{ PEMBAYARAN_LEVY_DUTY : dikenakan
+
+  SUPPLIER {
+    int id PK
+    string nama
+  }
+  KONTRAK_CPO {
+    int id PK
+    int supplier_id FK
+    string nomor_kontrak
+    decimal qty
+    decimal harga_per_kg
+    boolean sudah_bayar
+    string cbd_cad
+  }
+  STORAGE {
+    int id PK
+    string nama_tangki
+  }
+  INCOMING_CPO {
+    int id PK
+    int kontrak_cpo_id FK
+    int storage_id FK
+    decimal qty
+    date tgl
+    string note
+  }
+  MASTER_PRODUK {
+    int id PK
+    string nama
+    string kode
+  }
+  STOK_PRODUK {
+    int id PK
+    int produk_id FK
+    int storage_id FK
+    decimal qty
+  }
+  PROSES_REFINERY {
+    int id PK
+    date tgl
+  }
+  BAHAN_REFINERY {
+    int id PK
+    int proses_refinery_id FK
+    int produk_id FK
+    decimal qty
+  }
+  HASIL_REFINERY {
+    int id PK
+    int proses_refinery_id FK
+    int produk_id FK
+    decimal qty
+  }
+  PROSES_FRAKSINASI {
+    int id PK
+    date tgl
+  }
+  BAHAN_FRAKSINASI {
+    int id PK
+    int proses_fraksinasi_id FK
+    int produk_id FK
+    decimal qty
+  }
+  HASIL_FRAKSINASI {
+    int id PK
+    int proses_fraksinasi_id FK
+    int produk_id FK
+    decimal qty
+  }
+  PROSES_PACKAGING {
+    int id PK
+    date tgl
+  }
+  BAHAN_PACKAGING {
+    int id PK
+    int proses_packaging_id FK
+    int produk_id FK
+    decimal qty
+  }
+  HASIL_PACKAGING {
+    int id PK
+    int proses_packaging_id FK
+    int produk_id FK
+    decimal qty
+  }
+  BUYER {
+    int id PK
+    string nama
+  }
+  KONTRAK_PENJUALAN {
+    int id PK
+    int buyer_id FK
+    int produk_id FK
+    string nomor_kontrak
+    decimal qty
+    decimal harga_satuan
+    boolean sudah_bayar
+  }
+  PENGIRIMAN_PENJUALAN {
+    int id PK
+    int kontrak_penjualan_id FK
+    decimal qty_kirim
+    decimal qty_terima
+    string via
+    string termin
+    string status
+    string incoterm
+    date tgl
+  }
+  INVOICE {
+    int id PK
+    int pengiriman_id FK
+    decimal nilai
+    string nomor_invoice
+  }
+  PEMBAYARAN_LEVY_DUTY {
+    int id PK
+    int invoice_id FK
+    string kapal
+    decimal tarif
+    decimal kurs
+    decimal nilai_akhir
+  }
+  TRUCKING {
+    int id PK
+    int pengiriman_id FK
+    string no_do
+    decimal qty
+    int unit_tersedia
+    string transporter
+    date tgl
+  }
+  TARGET_PE_BULANAN {
+    int id PK
+    decimal jumlah
+    date tgl
+  }
+  TAMBAHAN_PE {
+    int id PK
+    decimal qty
+    date tgl
+  }
+  PEMAKAIAN_PE {
+    int id PK
+    decimal qty
+    date tgl
+  }
+  SALDO_BANK_HARIAN {
+    int id PK
+    decimal saldo
+    date tgl
+    string no_rek
+    decimal kurs
+  }
+  LIST_PAYMENT {
+    int id PK
+    string mitra
+    decimal jumlah
+    string nomor_fr
+    string bank
+    string objek_pekerjaan
+    date tgl_pembayaran_realisasi
+  }
+`;
+const { svg } = await mermaid.render('erd-svg', def);
+document.getElementById('erd').innerHTML = svg;
+
+document.querySelectorAll('#erd svg.erDiagram .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+
+document.querySelectorAll('#erd svg.erDiagram .row-rect-odd path, #erd svg.erDiagram .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>
