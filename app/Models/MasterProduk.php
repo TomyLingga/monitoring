@@ -9,7 +9,7 @@ class MasterProduk extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nama', 'kode'];
+    protected $fillable = ['nama_produk', 'satuan', 'kode_produk'];
 
     public function stokProduks()
     {

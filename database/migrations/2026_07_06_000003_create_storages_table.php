@@ -10,10 +10,10 @@ class CreateStoragesTable extends Migration
     {
         Schema::create('storages', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_tangki');
+            $table->string('nama');
+            $table->string('lokasi')->nullable();
+            $table->decimal('kapasitas', 15, 2);
             $table->enum('jenis', ['tangki', 'gudang'])->default('tangki');
-            $table->decimal('kapasitas', 15, 2)->nullable();
-            $table->string('tipe')->nullable()->comment('CPO, RPO, PFAD, Olein, Stearin, dll');
             $table->timestamps();
         });
     }

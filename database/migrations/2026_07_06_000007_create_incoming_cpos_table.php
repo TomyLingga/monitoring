@@ -12,11 +12,10 @@ class CreateIncomingCposTable extends Migration
             $table->id();
             $table->foreignId('kontrak_cpo_id')->constrained('kontrak_cpos')->onDelete('cascade');
             $table->foreignId('storage_id')->constrained('storages')->onDelete('cascade');
-            $table->decimal('qty', 15, 2);
+            $table->decimal('qty_kirim', 15, 2);
+            $table->decimal('qty_terima', 15, 2);
+            $table->decimal('selisih_qty', 15, 2);
             $table->date('tgl');
-            $table->string('no_surat_jalan')->nullable();
-            $table->string('supir')->nullable();
-            $table->string('no_kendaraan')->nullable();
             $table->text('note')->nullable();
             $table->timestamps();
         });

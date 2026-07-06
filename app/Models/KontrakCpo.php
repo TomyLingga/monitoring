@@ -11,7 +11,7 @@ class KontrakCpo extends Model
 
     protected $fillable = [
         'supplier_id', 'nomor_kontrak', 'qty', 'harga_per_kg',
-        'cbd_cad', 'tgl_kontrak', 'tgl_jatuh_tempo', 'status'
+        'cbd_cad', 'tgl_kontrak', 'tgl_jatuh_tempo', 'status', 'is_closed'
     ];
 
     protected $casts = [
@@ -19,6 +19,7 @@ class KontrakCpo extends Model
         'harga_per_kg' => 'decimal:2',
         'tgl_kontrak' => 'date',
         'tgl_jatuh_tempo' => 'date',
+        'is_closed' => 'boolean',
     ];
 
     protected $appends = [
@@ -48,7 +49,7 @@ class KontrakCpo extends Model
     /** Total qty CPO yang sudah dikirim/diterima */
     public function getTotalTerkirimAttribute()
     {
-        return (float) $this->incomingCpos()->sum('qty');
+        return (float) $this->incomingCpos()->sum('qty_terima');
     }
 
     /** Outstanding qty = kontrak qty - total terkirim */

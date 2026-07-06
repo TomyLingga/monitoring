@@ -10,12 +10,13 @@ class IncomingCpo extends Model
     use HasFactory;
 
     protected $fillable = [
-        'kontrak_cpo_id', 'storage_id', 'qty', 'tgl',
-        'no_surat_jalan', 'supir', 'no_kendaraan', 'note'
+        'kontrak_cpo_id', 'storage_id', 'qty_kirim', 'qty_terima', 'selisih_qty', 'tgl', 'note'
     ];
 
     protected $casts = [
-        'qty' => 'decimal:2',
+        'qty_kirim' => 'decimal:2',
+        'qty_terima' => 'decimal:2',
+        'selisih_qty' => 'decimal:2',
         'tgl' => 'date',
     ];
 

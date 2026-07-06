@@ -9,7 +9,7 @@ class Storage extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nama_tangki', 'jenis', 'kapasitas', 'tipe'];
+    protected $fillable = ['nama', 'lokasi', 'kapasitas', 'jenis'];
 
     public function incomingCpos()
     {

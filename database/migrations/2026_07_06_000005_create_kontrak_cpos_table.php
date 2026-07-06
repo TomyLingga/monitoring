@@ -18,6 +18,7 @@ class CreateKontrakCposTable extends Migration
             $table->date('tgl_kontrak')->nullable();
             $table->date('tgl_jatuh_tempo')->nullable();
             $table->enum('status', ['aktif', 'selesai', 'batal'])->default('aktif');
+            $table->boolean('is_closed')->default(false);
             $table->timestamps();
         });
     }

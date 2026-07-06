@@ -10,8 +10,9 @@ class CreateMasterProduksTable extends Migration
     {
         Schema::create('master_produks', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
-            $table->string('kode')->unique();
+            $table->string('nama_produk');
+            $table->string('satuan')->default('Kg');
+            $table->string('kode_produk')->unique();
             $table->timestamps();
         });
     }
