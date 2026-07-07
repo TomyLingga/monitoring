@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\TruckingController;
+use App\Http\Controllers\Api\LogisticPeTargetController;
+use App\Http\Controllers\Api\LogisticAdditionalPeController;
+use App\Http\Controllers\Api\LogisticPeUsageController;
 use App\Http\Controllers\Api\BuyerController;
 use App\Http\Controllers\Api\StorageController;
 use App\Http\Controllers\Api\MasterProdukController;
@@ -20,6 +24,7 @@ use App\Http\Controllers\Api\StokProdukController;
 use App\Http\Controllers\Api\PengirimanPenjualanController;
 use App\Http\Controllers\Api\PembayaranPenjualanController;
 use App\Http\Controllers\Api\DailySalesTargetController;
+use App\Http\Controllers\LevyDutyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,7 +36,11 @@ use App\Http\Controllers\Api\DailySalesTargetController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
-// ── Protected routes ──
+// BI Kurs Routes
+Route::get('/kurs-bi/uka', [\App\Http\Controllers\KursBIController::class, 'uka']);
+Route::get('/kurs-bi/jisdor', [\App\Http\Controllers\KursBIController::class, 'jisdor']);
+
+// Routes with Sanctum middleware
 Route::middleware('auth:sanctum')->group(function () {
 
     // Auth
@@ -62,10 +71,61 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('pembayaran-penjualans', PembayaranPenjualanController::class);
     Route::apiResource('daily-sales-targets', DailySalesTargetController::class);
 
+    // Pembayaran Levy Duty
+    Route::post('/levy-duties/bulk', [LevyDutyController::class, 'bulkStore']);
+    Route::apiResource('levy-duties', LevyDutyController::class);
+
+    // Bulk Imports
+    Route::post('suppliers/bulk', [SupplierController::class, 'bulkStore']);
+    Route::post('buyers/bulk', [BuyerController::class, 'bulkStore']);
+    Route::post('storages/bulk', [StorageController::class, 'bulkStore']);
+    Route::post('master-produks/bulk', [MasterProdukController::class, 'bulkStore']);
+    Route::post('incoming-cpos/bulk', [IncomingCpoController::class, 'bulkStore']);
+    Route::post('pengiriman-penjualans/bulk', [PengirimanPenjualanController::class, 'bulkStore']);
+    Route::post('pembayaran-penjualans/bulk', [PembayaranPenjualanController::class, 'bulkStore']);
+    Route::post('proses-refineries/bulk', [ProsesRefineryController::class, 'bulkStore']);
+    Route::post('proses-fraksinasis/bulk', [ProsesFraksinasiController::class, 'bulkStore']);
+    Route::post('proses-packagings/bulk', [ProsesPackagingController::class, 'bulkStore']);
+    Route::post('stok-produks/bulk', [StokProdukController::class, 'bulkStore']);
+
     // ── Produksi ──
     Route::apiResource('proses-refineries', ProsesRefineryController::class);
     Route::apiResource('proses-fraksinasis', ProsesFraksinasiController::class);
     Route::apiResource('proses-packagings', ProsesPackagingController::class);
     Route::apiResource('daily-production-targets', DailyProductionTargetController::class);
     Route::apiResource('stok-produks', StokProdukController::class);
+
+    // ── Logistik ──
+    Route::post('truckings/bulk', [TruckingController::class, 'bulkStore']);
+    Route::post('logistic-pe-targets/bulk', [LogisticPeTargetController::class, 'bulkStore']);
+    Route::post('logistic-additional-pes/bulk', [LogisticAdditionalPeController::class, 'bulkStore']);
+    Route::post('logistic-pe-usages/bulk', [LogisticPeUsageController::class, 'bulkStore']);
+    
+    Route::apiResource('truckings', TruckingController::class);
+    Route::apiResource('logistic-pe-targets', LogisticPeTargetController::class);
+    Route::apiResource('logistic-additional-pes', LogisticAdditionalPeController::class);
+    Route::apiResource('logistic-pe-usages', LogisticPeUsageController::class);
+
+    // ── Keuangan ──
+    Route::get('finance/bank-accounts', [\App\Http\Controllers\Api\FinanceController::class, 'getBankAccounts']);
+    Route::post('finance/bank-accounts', [\App\Http\Controllers\Api\FinanceController::class, 'storeBankAccount']);
+    Route::put('finance/bank-accounts/{id}', [\App\Http\Controllers\Api\FinanceController::class, 'updateBankAccount']);
+    Route::delete('finance/bank-accounts/{id}', [\App\Http\Controllers\Api\FinanceController::class, 'destroyBankAccount']);
+
+    Route::get('finance/balances', [\App\Http\Controllers\Api\FinanceController::class, 'getBalances']);
+
+    Route::get('finance/bank-transactions', [\App\Http\Controllers\Api\FinanceController::class, 'getBankTransactions']);
+    Route::post('finance/bank-transactions', [\App\Http\Controllers\Api\FinanceController::class, 'storeBankTransaction']);
+    Route::put('finance/bank-transactions/{id}', [\App\Http\Controllers\Api\FinanceController::class, 'updateBankTransaction']);
+    Route::delete('finance/bank-transactions/{id}', [\App\Http\Controllers\Api\FinanceController::class, 'destroyBankTransaction']);
+
+    Route::get('finance/payments', [\App\Http\Controllers\Api\FinanceController::class, 'getPayments']);
+    Route::post('finance/payments', [\App\Http\Controllers\Api\FinanceController::class, 'storePayment']);
+    Route::put('finance/payments/{id}', [\App\Http\Controllers\Api\FinanceController::class, 'updatePayment']);
+    Route::delete('finance/payments/{id}', [\App\Http\Controllers\Api\FinanceController::class, 'destroyPayment']);
+
+    Route::post('finance/payment-histories', [\App\Http\Controllers\Api\FinanceController::class, 'storePaymentHistory']);
+    Route::delete('finance/payment-histories/{id}', [\App\Http\Controllers\Api\FinanceController::class, 'destroyPaymentHistory']);
+
+    Route::get('finance/kurs', [\App\Http\Controllers\Api\FinanceController::class, 'getKurs']);
 });

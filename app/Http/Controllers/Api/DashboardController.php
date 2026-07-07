@@ -108,7 +108,7 @@ class DashboardController extends Controller
      */
     private function fetchKpbnPricesResilient($startDate, $endDate)
     {
-        $url = 'https://apis.holding-perkebunan.com/crm/mypalmco/price-for-inl.php';
+        $url = env('URL_KPBN', 'https://apis.holding-perkebunan.com/crm/mypalmco/price-for-inl.php');
         $authHeader = 'Basic cmVnaW9uYWwxOnB0cG40cGFsbWNv';
 
         // Fetch a wider window (e.g. 5 months + 14 days) to guarantee a fallback price for the earliest date

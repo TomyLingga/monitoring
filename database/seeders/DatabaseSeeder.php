@@ -515,5 +515,8 @@ class DatabaseSeeder extends Seeder
             'tgl_jatuh_tempo' => '2026-08-05',
             'status' => 'lunas',
         ]);
+
+        // 15. Logistics & Finance Data
+        $this->call(LogisticsFinanceSeeder::class);
     }
 }

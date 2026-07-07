@@ -41,6 +41,7 @@ class PengirimanPenjualanController extends Controller
             'storage_id'           => 'nullable|exists:storages,id',
             'create_invoice'       => 'nullable|boolean',
             'nomor_invoice'        => 'nullable|string',
+            'nilai_invoice'        => 'nullable|numeric|min:0',
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -69,7 +70,7 @@ class PengirimanPenjualanController extends Controller
                 Invoice::create([
                     'pengiriman_id' => $shipment->id,
                     'nomor_invoice' => $request->nomor_invoice,
-                    'nilai'         => $qtyKirim * (float)$kontrak->harga_satuan,
+                    'nilai'         => $request->nilai_invoice ?? ($qtyKirim * (float)$kontrak->harga_satuan),
                     'tgl_invoice'   => $request->tgl,
                     'status'        => 'draft',
                 ]);
@@ -100,6 +101,7 @@ class PengirimanPenjualanController extends Controller
             'incoterm'             => 'nullable|string',
             'tgl'                  => 'required|date',
             'storage_id'           => 'nullable|exists:storages,id',
+            'nilai_invoice'        => 'nullable|numeric|min:0',
         ]);
 
         return DB::transaction(function () use ($request, $shipment) {
@@ -128,7 +130,7 @@ class PengirimanPenjualanController extends Controller
             $invoice = $shipment->invoices()->first();
             if ($invoice) {
                 $invoice->update([
-                    'nilai' => (float)$request->qty_kirim * (float)$kontrak->harga_satuan,
+                    'nilai' => $request->nilai_invoice ?? ((float)$request->qty_kirim * (float)$kontrak->harga_satuan),
                 ]);
             }
 
