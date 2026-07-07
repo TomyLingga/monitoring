@@ -518,5 +518,11 @@ class DatabaseSeeder extends Seeder
 
         // 15. Logistics & Finance Data
         $this->call(LogisticsFinanceSeeder::class);
+
+        // 16. Sales Targets
+        $this->call(SalesTargetSeeder::class);
+
+        // 17. Levy Duty & Pembayaran
+        $this->call(LevyDutySeeder::class);
     }
 }
