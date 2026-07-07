@@ -19,11 +19,12 @@ class KontrakPenjualan extends Model
         'tgl_jatuh_tempo' => 'date',
     ];
 
-    protected $appends = ['total_terkirim', 'outstanding_qty', 'total_nilai_kontrak'];
+    protected $appends = ['total_terkirim', 'outstanding_qty', 'total_nilai_kontrak', 'total_terbayar', 'outstanding_payment'];
 
     public function buyer() { return $this->belongsTo(Buyer::class); }
     public function produk() { return $this->belongsTo(MasterProduk::class, 'produk_id'); }
     public function pengirimanPenjualans() { return $this->hasMany(PengirimanPenjualan::class); }
+    public function pembayaranPenjualans() { return $this->hasMany(PembayaranPenjualan::class, 'kontrak_penjualan_id'); }
 
     public function getTotalTerkirimAttribute()
     {
@@ -38,5 +39,15 @@ class KontrakPenjualan extends Model
     public function getTotalNilaiKontrakAttribute()
     {
         return (float) $this->qty * (float) $this->harga_satuan;
+    }
+
+    public function getTotalTerbayarAttribute()
+    {
+        return (float) $this->pembayaranPenjualans()->sum('nominal');
+    }
+
+    public function getOutstandingPaymentAttribute()
+    {
+        return max(0.0, $this->total_nilai_kontrak - $this->total_terbayar);
     }
 }

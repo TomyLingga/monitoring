@@ -9,7 +9,7 @@ class Supplier extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nama', 'alamat', 'telepon', 'email', 'pic'];
+    protected $fillable = ['nama', 'alamat', 'telepon', 'email', 'pic', 'keterangan'];
 
     public function kontrakCpos()
     {

@@ -15,6 +15,7 @@ class SupplierController extends Controller
         $data = $request->validate([
             'nama' => 'required|string', 'alamat' => 'nullable|string',
             'telepon' => 'nullable|string', 'email' => 'nullable|email', 'pic' => 'nullable|string',
+            'keterangan' => 'nullable|string|in:lokal,impor',
         ]);
         return Supplier::create($data);
     }
@@ -26,6 +27,7 @@ class SupplierController extends Controller
         $data = $request->validate([
             'nama' => 'required|string', 'alamat' => 'nullable|string',
             'telepon' => 'nullable|string', 'email' => 'nullable|email', 'pic' => 'nullable|string',
+            'keterangan' => 'nullable|string|in:lokal,impor',
         ]);
         $supplier->update($data);
         return $supplier;

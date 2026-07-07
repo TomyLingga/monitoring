@@ -12,6 +12,13 @@ use App\Http\Controllers\Api\IncomingCpoController;
 use App\Http\Controllers\Api\PembayaranCpoController;
 use App\Http\Controllers\Api\KontrakPenjualanController;
 use App\Http\Controllers\Api\DailyTargetController;
+use App\Http\Controllers\Api\ProsesRefineryController;
+use App\Http\Controllers\Api\ProsesFraksinasiController;
+use App\Http\Controllers\Api\ProsesPackagingController;
+use App\Http\Controllers\Api\DailyProductionTargetController;
+use App\Http\Controllers\Api\StokProdukController;
+use App\Http\Controllers\Api\PengirimanPenjualanController;
+use App\Http\Controllers\Api\PembayaranPenjualanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,4 +57,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Penjualan
     Route::apiResource('kontrak-penjualans', KontrakPenjualanController::class);
+    Route::apiResource('pengiriman-penjualans', PengirimanPenjualanController::class);
+    Route::apiResource('pembayaran-penjualans', PembayaranPenjualanController::class);
+
+    // ── Produksi ──
+    Route::apiResource('proses-refineries', ProsesRefineryController::class);
+    Route::apiResource('proses-fraksinasis', ProsesFraksinasiController::class);
+    Route::apiResource('proses-packagings', ProsesPackagingController::class);
+    Route::apiResource('daily-production-targets', DailyProductionTargetController::class);
+    Route::apiResource('stok-produks', StokProdukController::class);
 });

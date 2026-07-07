@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 class KontrakPenjualanController extends Controller
 {
-    public function index() { return KontrakPenjualan::with(['buyer', 'produk'])->latest()->get(); }
+    public function index() { return KontrakPenjualan::with(['buyer', 'produk', 'pembayaranPenjualans', 'pengirimanPenjualans'])->latest()->get(); }
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -15,9 +15,9 @@ class KontrakPenjualanController extends Controller
             'harga_satuan' => 'required|numeric|min:0', 'tgl_kontrak' => 'nullable|date', 'tgl_jatuh_tempo' => 'nullable|date',
             'termin_pembayaran' => 'nullable|string', 'status' => 'nullable|in:aktif,selesai,batal',
         ]);
-        return KontrakPenjualan::create($data)->load(['buyer', 'produk']);
+        return KontrakPenjualan::create($data)->load(['buyer', 'produk', 'pembayaranPenjualans', 'pengirimanPenjualans']);
     }
-    public function show(KontrakPenjualan $kontrakPenjualan) { return $kontrakPenjualan->load(['buyer', 'produk', 'pengirimanPenjualans']); }
+    public function show(KontrakPenjualan $kontrakPenjualan) { return $kontrakPenjualan->load(['buyer', 'produk', 'pengirimanPenjualans', 'pembayaranPenjualans']); }
     public function update(Request $request, KontrakPenjualan $kontrakPenjualan)
     {
         $data = $request->validate([
@@ -28,7 +28,7 @@ class KontrakPenjualanController extends Controller
             'termin_pembayaran' => 'nullable|string', 'status' => 'nullable|in:aktif,selesai,batal',
         ]);
         $kontrakPenjualan->update($data);
-        return $kontrakPenjualan->load(['buyer', 'produk']);
+        return $kontrakPenjualan->load(['buyer', 'produk', 'pembayaranPenjualans', 'pengirimanPenjualans']);
     }
     public function destroy(KontrakPenjualan $kontrakPenjualan) { $kontrakPenjualan->delete(); return response()->json(['message' => 'Kontrak penjualan berhasil dihapus']); }
 }

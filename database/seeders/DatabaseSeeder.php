@@ -41,8 +41,9 @@ class DatabaseSeeder extends Seeder
             $supplierModels[] = Supplier::create($sup);
         }
 
-        // 3. 12 Products
+        // 3. Products & Materials
         $productsData = [
+            // Produk CPO & Turunannya
             ['nama_produk' => 'Crude Palm Oil', 'kode_produk' => 'CPO', 'satuan' => 'Kg'],
             ['nama_produk' => 'RBD Palm Oil', 'kode_produk' => 'RBDPO', 'satuan' => 'Kg'],
             ['nama_produk' => 'Palm Fatty Acid Distillate', 'kode_produk' => 'PFAD', 'satuan' => 'Kg'],
@@ -51,17 +52,28 @@ class DatabaseSeeder extends Seeder
             ['nama_produk' => 'RBD Palm Olein IV57', 'kode_produk' => 'OL-IV57', 'satuan' => 'Kg'],
             ['nama_produk' => 'RBD Palm Olein IV58', 'kode_produk' => 'OL-IV58', 'satuan' => 'Kg'],
             ['nama_produk' => 'RBD Palm Olein IV60', 'kode_produk' => 'OL-IV60', 'satuan' => 'Kg'],
-            ['nama_produk' => 'Kemasan Minyakita', 'kode_produk' => 'K-MINYAKITA', 'satuan' => 'Kg'],
-            ['nama_produk' => 'Kemasan Salvaco', 'kode_produk' => 'K-SALVACO', 'satuan' => 'Kg'],
-            ['nama_produk' => 'Kemasan Nusakita', 'kode_produk' => 'K-NUSAKITA', 'satuan' => 'Kg'],
-            ['nama_produk' => 'Kemasan INL', 'kode_produk' => 'K-INL', 'satuan' => 'Kg'],
+            // Kemasan Retail
+            ['nama_produk' => 'Kemasan Minyakita', 'kode_produk' => 'K-MINYAKITA', 'satuan' => 'Box'],
+            ['nama_produk' => 'Kemasan Salvaco', 'kode_produk' => 'K-SALVACO', 'satuan' => 'Box'],
+            ['nama_produk' => 'Kemasan Nusakita', 'kode_produk' => 'K-NUSAKITA', 'satuan' => 'Box'],
+            ['nama_produk' => 'Kemasan INL', 'kode_produk' => 'K-INL', 'satuan' => 'Box'],
+            // Material / Bahan Tambahan Produksi
+            ['nama_produk' => 'Bleaching Earth', 'kode_produk' => 'BE', 'satuan' => 'Kg'],
+            ['nama_produk' => 'Phosphoric Acid', 'kode_produk' => 'PA', 'satuan' => 'Kg'],
+            ['nama_produk' => 'Vitamin A (Fortifikan)', 'kode_produk' => 'VIT-A', 'satuan' => 'Kg'],
+            ['nama_produk' => 'Karton', 'kode_produk' => 'KARTON', 'satuan' => 'Pcs'],
+            ['nama_produk' => 'Pouch', 'kode_produk' => 'POUCH', 'satuan' => 'Pcs'],
         ];
         $productModels = [];
         foreach ($productsData as $prod) {
-            $productModels[$prod['kode_produk']] = MasterProduk::create($prod);
+            $productModels[$prod['kode_produk']] = MasterProduk::updateOrCreate(
+                ['kode_produk' => $prod['kode_produk']],
+                $prod
+            );
         }
 
-        // 4. Storages: 5 CPO Tanks + 3 Other Tanks + 2 Warehouses
+
+        // 4. Storages: CPO Tanks, Processed Tanks, and Gudangs (including material gudangs)
         $storagesData = [
             // CPO Tanks (5 units)
             ['nama' => 'Tangki CPO 01', 'lokasi' => 'Zona Utara', 'kapasitas' => 5000000.00, 'jenis' => 'tangki'],
@@ -78,10 +90,20 @@ class DatabaseSeeder extends Seeder
             // Warehouses (2 units)
             ['nama' => 'Gudang Kemasan Retail', 'lokasi' => 'Blok B', 'kapasitas' => 1500000.00, 'jenis' => 'gudang'],
             ['nama' => 'Gudang Samping PFAD', 'lokasi' => 'Blok C', 'kapasitas' => 1000000.00, 'jenis' => 'gudang'],
+
+            // New Storages for Materials (5 units)
+            ['nama' => 'Penyimpanan BE', 'lokasi' => 'Zona Timur', 'kapasitas' => 500000.00, 'jenis' => 'gudang'],
+            ['nama' => 'Penyimpanan PA', 'lokasi' => 'Zona Timur', 'kapasitas' => 200000.00, 'jenis' => 'gudang'],
+            ['nama' => 'Penyimpanan Karton', 'lokasi' => 'Blok C', 'kapasitas' => 100000.00, 'jenis' => 'gudang'],
+            ['nama' => 'Penyimpanan Pouch', 'lokasi' => 'Blok C', 'kapasitas' => 100000.00, 'jenis' => 'gudang'],
+            ['nama' => 'Penyimpanan Vit A', 'lokasi' => 'Zona Barat', 'kapasitas' => 50000.00, 'jenis' => 'gudang'],
         ];
         $storageModels = [];
         foreach ($storagesData as $store) {
-            $storageModels[] = Storage::create($store);
+            $storageModels[$store['nama']] = Storage::updateOrCreate(
+                ['nama' => $store['nama']],
+                $store
+            );
         }
 
         // 5. CPO Contracts (Procurement)
@@ -154,7 +176,7 @@ class DatabaseSeeder extends Seeder
         // Tank 1 receives CPO from Contract 1
         IncomingCpo::create([
             'kontrak_cpo_id' => $k1->id,
-            'storage_id' => $storageModels[0]->id, // Tangki CPO 01
+            'storage_id' => $storageModels['Tangki CPO 01']->id,
             'qty_kirim' => 400000.00,
             'qty_terima' => 398500.00,
             'selisih_qty' => 1500.00,
@@ -164,7 +186,7 @@ class DatabaseSeeder extends Seeder
 
         IncomingCpo::create([
             'kontrak_cpo_id' => $k1->id,
-            'storage_id' => $storageModels[0]->id, // Tangki CPO 01
+            'storage_id' => $storageModels['Tangki CPO 01']->id,
             'qty_kirim' => 300000.00,
             'qty_terima' => 299200.00,
             'selisih_qty' => 800.00,
@@ -175,7 +197,7 @@ class DatabaseSeeder extends Seeder
         // Tank 2 receives CPO from Contract 1 AND Contract 2
         IncomingCpo::create([
             'kontrak_cpo_id' => $k1->id,
-            'storage_id' => $storageModels[1]->id, // Tangki CPO 02
+            'storage_id' => $storageModels['Tangki CPO 02']->id,
             'qty_kirim' => 810000.00,
             'qty_terima' => 802300.00,
             'selisih_qty' => 7700.00,
@@ -185,7 +207,7 @@ class DatabaseSeeder extends Seeder
 
         IncomingCpo::create([
             'kontrak_cpo_id' => $k2->id,
-            'storage_id' => $storageModels[1]->id, // Tangki CPO 02
+            'storage_id' => $storageModels['Tangki CPO 02']->id,
             'qty_kirim' => 400000.00,
             'qty_terima' => 397700.00,
             'selisih_qty' => 2300.00,
@@ -196,7 +218,7 @@ class DatabaseSeeder extends Seeder
         // Tank 3 receives CPO from Contract 3
         IncomingCpo::create([
             'kontrak_cpo_id' => $k3->id,
-            'storage_id' => $storageModels[2]->id, // Tangki CPO 03
+            'storage_id' => $storageModels['Tangki CPO 03']->id,
             'qty_kirim' => 860000.00,
             'qty_terima' => 850000.00,
             'selisih_qty' => 10000.00,
@@ -207,7 +229,7 @@ class DatabaseSeeder extends Seeder
         // Tank 4 receives CPO from Contract 4
         IncomingCpo::create([
             'kontrak_cpo_id' => $k4->id,
-            'storage_id' => $storageModels[3]->id, // Tangki CPO 04
+            'storage_id' => $storageModels['Tangki CPO 04']->id,
             'qty_kirim' => 1820000.00,
             'qty_terima' => 1800000.00,
             'selisih_qty' => 20000.00,
@@ -218,7 +240,7 @@ class DatabaseSeeder extends Seeder
         // Tank 5 receives CPO from Contract 5
         IncomingCpo::create([
             'kontrak_cpo_id' => $k5->id,
-            'storage_id' => $storageModels[4]->id, // Tangki CPO 05
+            'storage_id' => $storageModels['Tangki CPO 05']->id,
             'qty_kirim' => 510000.00,
             'qty_terima' => 500000.00,
             'selisih_qty' => 10000.00,
@@ -237,74 +259,45 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Seed stock levels
-        // Seed CPO Stock in 5 CPO Tanks
-        // Tangki CPO 01
-        StokProduk::create([
-            'produk_id' => $productModels['CPO']->id,
-            'storage_id' => $storageModels[0]->id,
-            'qty' => 697700.00,
-        ]);
+        $initialStocks = [
+            // CPO in CPO Tanks
+            ['produk_kode' => 'CPO', 'storage_nama' => 'Tangki CPO 01', 'qty' => 697700.00],
+            ['produk_kode' => 'CPO', 'storage_nama' => 'Tangki CPO 02', 'qty' => 1200000.00],
+            ['produk_kode' => 'CPO', 'storage_nama' => 'Tangki CPO 03', 'qty' => 850000.00],
+            ['produk_kode' => 'CPO', 'storage_nama' => 'Tangki CPO 04', 'qty' => 1800000.00],
+            ['produk_kode' => 'CPO', 'storage_nama' => 'Tangki CPO 05', 'qty' => 500000.00],
+            
+            // RBDPO
+            ['produk_kode' => 'RBDPO', 'storage_nama' => 'Tangki RBDPO 01', 'qty' => 950000.00],
+            
+            // Olein
+            ['produk_kode' => 'OL-IV56', 'storage_nama' => 'Tangki Olein IV56 01', 'qty' => 1500000.00],
+            
+            // Warehouse (Gudang Kemasan Retail)
+            ['produk_kode' => 'K-MINYAKITA', 'storage_nama' => 'Gudang Kemasan Retail', 'qty' => 250000.00],
+            ['produk_kode' => 'K-SALVACO', 'storage_nama' => 'Gudang Kemasan Retail', 'qty' => 180000.00],
+            
+            // PFAD
+            ['produk_kode' => 'PFAD', 'storage_nama' => 'Gudang Samping PFAD', 'qty' => 420000.00],
 
-        // Tangki CPO 02
-        StokProduk::create([
-            'produk_id' => $productModels['CPO']->id,
-            'storage_id' => $storageModels[1]->id,
-            'qty' => 1200000.00,
-        ]);
+            // Materials
+            ['produk_kode' => 'BE', 'storage_nama' => 'Penyimpanan BE', 'qty' => 45000.00],
+            ['produk_kode' => 'PA', 'storage_nama' => 'Penyimpanan PA', 'qty' => 12000.00],
+            ['produk_kode' => 'KARTON', 'storage_nama' => 'Penyimpanan Karton', 'qty' => 8000.00],
+            ['produk_kode' => 'POUCH', 'storage_nama' => 'Penyimpanan Pouch', 'qty' => 15000.00],
+            ['produk_kode' => 'VIT-A', 'storage_nama' => 'Penyimpanan Vit A', 'qty' => 2500.00],
+        ];
 
-        // Tangki CPO 03
-        StokProduk::create([
-            'produk_id' => $productModels['CPO']->id,
-            'storage_id' => $storageModels[2]->id,
-            'qty' => 850000.00,
-        ]);
-
-        // Tangki CPO 04
-        StokProduk::create([
-            'produk_id' => $productModels['CPO']->id,
-            'storage_id' => $storageModels[3]->id,
-            'qty' => 1800000.00,
-        ]);
-
-        // Tangki CPO 05
-        StokProduk::create([
-            'produk_id' => $productModels['CPO']->id,
-            'storage_id' => $storageModels[4]->id,
-            'qty' => 500000.00,
-        ]);
-
-        // Tangki RBDPO 01 (Index 5)
-        StokProduk::create([
-            'produk_id' => $productModels['RBDPO']->id,
-            'storage_id' => $storageModels[5]->id,
-            'qty' => 950000.00,
-        ]);
-
-        // Tangki Olein IV56 01 (Index 6)
-        StokProduk::create([
-            'produk_id' => $productModels['OL-IV56']->id,
-            'storage_id' => $storageModels[6]->id,
-            'qty' => 1500000.00,
-        ]);
-
-        // Warehouse (Gudang Kemasan Retail, Index 8)
-        StokProduk::create([
-            'produk_id' => $productModels['K-MINYAKITA']->id,
-            'storage_id' => $storageModels[8]->id,
-            'qty' => 250000.00,
-        ]);
-        StokProduk::create([
-            'produk_id' => $productModels['K-SALVACO']->id,
-            'storage_id' => $storageModels[8]->id,
-            'qty' => 180000.00,
-        ]);
-
-        // Warehouse (Gudang Samping PFAD, Index 9)
-        StokProduk::create([
-            'produk_id' => $productModels['PFAD']->id,
-            'storage_id' => $storageModels[9]->id,
-            'qty' => 420000.00,
-        ]);
+        foreach ($initialStocks as $st) {
+            $pId = $productModels[$st['produk_kode']]->id ?? null;
+            $sId = $storageModels[$st['storage_nama']]->id ?? null;
+            if ($pId && $sId) {
+                StokProduk::updateOrCreate(
+                    ['produk_id' => $pId, 'storage_id' => $sId],
+                    ['qty' => $st['qty']]
+                );
+            }
+        }
 
         // 6. Buyers
         Buyer::create([
@@ -322,6 +315,205 @@ class DatabaseSeeder extends Seeder
             'no_rek' => '102-00-112233-4',
             'nama_bank' => 'Bank Mandiri',
             'kurs' => 1.00,
+        ]);
+
+        // 8. Daily Production Targets
+        $targets = [
+            ['tgl' => '2026-07-01', 'jenis' => 'refinery', 'target_qty' => 1500000.00],
+            ['tgl' => '2026-07-01', 'jenis' => 'fraksinasi', 'target_qty' => 1000000.00],
+            ['tgl' => '2026-07-01', 'jenis' => 'packaging', 'target_qty' => 15000.00],
+            ['tgl' => '2026-07-02', 'jenis' => 'refinery', 'target_qty' => 1500000.00],
+            ['tgl' => '2026-07-02', 'jenis' => 'fraksinasi', 'target_qty' => 1000000.00],
+            ['tgl' => '2026-07-02', 'jenis' => 'packaging', 'target_qty' => 15000.00],
+            ['tgl' => '2026-07-03', 'jenis' => 'refinery', 'target_qty' => 1500000.00],
+            ['tgl' => '2026-07-03', 'jenis' => 'fraksinasi', 'target_qty' => 1000000.00],
+            ['tgl' => '2026-07-03', 'jenis' => 'packaging', 'target_qty' => 15000.00],
+            ['tgl' => '2026-07-04', 'jenis' => 'refinery', 'target_qty' => 1500000.00],
+            ['tgl' => '2026-07-04', 'jenis' => 'fraksinasi', 'target_qty' => 1000000.00],
+            ['tgl' => '2026-07-04', 'jenis' => 'packaging', 'target_qty' => 15000.00],
+            ['tgl' => '2026-07-05', 'jenis' => 'refinery', 'target_qty' => 1500000.00],
+            ['tgl' => '2026-07-05', 'jenis' => 'fraksinasi', 'target_qty' => 1000000.00],
+            ['tgl' => '2026-07-05', 'jenis' => 'packaging', 'target_qty' => 15000.00],
+            ['tgl' => '2026-07-06', 'jenis' => 'refinery', 'target_qty' => 1500000.00],
+            ['tgl' => '2026-07-06', 'jenis' => 'fraksinasi', 'target_qty' => 1000000.00],
+            ['tgl' => '2026-07-06', 'jenis' => 'packaging', 'target_qty' => 15000.00],
+        ];
+        foreach ($targets as $tar) {
+            \App\Models\DailyProductionTarget::create($tar);
+        }
+
+        // 9. Production Processes (Refinery)
+        $ref1 = \App\Models\ProsesRefinery::create([
+            'tgl' => '2026-07-05',
+            'shift' => '1',
+            'catatan' => 'Refinery Batch 1'
+        ]);
+        \App\Models\BahanRefinery::create(['proses_refinery_id' => $ref1->id, 'produk_id' => $productModels['CPO']->id, 'storage_id' => $storageModels['Tangki CPO 01']->id, 'qty' => 120000.00]);
+        \App\Models\BahanRefinery::create(['proses_refinery_id' => $ref1->id, 'produk_id' => $productModels['BE']->id, 'storage_id' => $storageModels['Penyimpanan BE']->id, 'qty' => 1200.00]);
+        \App\Models\BahanRefinery::create(['proses_refinery_id' => $ref1->id, 'produk_id' => $productModels['PA']->id, 'storage_id' => $storageModels['Penyimpanan PA']->id, 'qty' => 600.00]);
+        \App\Models\HasilRefinery::create(['proses_refinery_id' => $ref1->id, 'produk_id' => $productModels['RBDPO']->id, 'storage_id' => $storageModels['Tangki RBDPO 01']->id, 'qty' => 115000.00]);
+        \App\Models\HasilRefinery::create(['proses_refinery_id' => $ref1->id, 'produk_id' => $productModels['PFAD']->id, 'storage_id' => $storageModels['Gudang Samping PFAD']->id, 'qty' => 3800.00]);
+
+        $ref2 = \App\Models\ProsesRefinery::create([
+            'tgl' => '2026-07-06',
+            'shift' => '2',
+            'catatan' => 'Refinery Batch 2'
+        ]);
+        \App\Models\BahanRefinery::create(['proses_refinery_id' => $ref2->id, 'produk_id' => $productModels['CPO']->id, 'storage_id' => $storageModels['Tangki CPO 02']->id, 'qty' => 150000.00]);
+        \App\Models\BahanRefinery::create(['proses_refinery_id' => $ref2->id, 'produk_id' => $productModels['BE']->id, 'storage_id' => $storageModels['Penyimpanan BE']->id, 'qty' => 1500.00]);
+        \App\Models\BahanRefinery::create(['proses_refinery_id' => $ref2->id, 'produk_id' => $productModels['PA']->id, 'storage_id' => $storageModels['Penyimpanan PA']->id, 'qty' => 750.00]);
+        \App\Models\HasilRefinery::create(['proses_refinery_id' => $ref2->id, 'produk_id' => $productModels['RBDPO']->id, 'storage_id' => $storageModels['Tangki RBDPO 01']->id, 'qty' => 144000.00]);
+        \App\Models\HasilRefinery::create(['proses_refinery_id' => $ref2->id, 'produk_id' => $productModels['PFAD']->id, 'storage_id' => $storageModels['Gudang Samping PFAD']->id, 'qty' => 4800.00]);
+
+        // 10. Production Processes (Fraksinasi)
+        $frak1 = \App\Models\ProsesFraksinasi::create([
+            'tgl' => '2026-07-05',
+            'shift' => '1',
+            'catatan' => 'Fraksinasi Batch 1'
+        ]);
+        \App\Models\BahanFraksinasi::create(['proses_fraksinasi_id' => $frak1->id, 'produk_id' => $productModels['RBDPO']->id, 'storage_id' => $storageModels['Tangki RBDPO 01']->id, 'qty' => 100000.00]);
+        \App\Models\HasilFraksinasi::create(['proses_fraksinasi_id' => $frak1->id, 'produk_id' => $productModels['OL-IV56']->id, 'storage_id' => $storageModels['Tangki Olein IV56 01']->id, 'qty' => 78000.00]);
+        \App\Models\HasilFraksinasi::create(['proses_fraksinasi_id' => $frak1->id, 'produk_id' => $productModels['Stearin']->id, 'storage_id' => $storageModels['Tangki Stearin 01']->id, 'qty' => 21000.00]);
+
+        $frak2 = \App\Models\ProsesFraksinasi::create([
+            'tgl' => '2026-07-06',
+            'shift' => '1',
+            'catatan' => 'Fraksinasi Batch 2'
+        ]);
+        \App\Models\BahanFraksinasi::create(['proses_fraksinasi_id' => $frak2->id, 'produk_id' => $productModels['RBDPO']->id, 'storage_id' => $storageModels['Tangki RBDPO 01']->id, 'qty' => 120000.00]);
+        \App\Models\HasilFraksinasi::create(['proses_fraksinasi_id' => $frak2->id, 'produk_id' => $productModels['OL-IV56']->id, 'storage_id' => $storageModels['Tangki Olein IV56 01']->id, 'qty' => 93000.00]);
+        \App\Models\HasilFraksinasi::create(['proses_fraksinasi_id' => $frak2->id, 'produk_id' => $productModels['Stearin']->id, 'storage_id' => $storageModels['Tangki Stearin 01']->id, 'qty' => 25000.00]);
+
+        // 11. Production Processes (Packaging)
+        $pack1 = \App\Models\ProsesPackaging::create([
+            'tgl' => '2026-07-05',
+            'shift' => '1',
+            'catatan' => 'Packaging Minyakita'
+        ]);
+        \App\Models\BahanPackaging::create(['proses_packaging_id' => $pack1->id, 'produk_id' => $productModels['OL-IV56']->id, 'storage_id' => $storageModels['Tangki Olein IV56 01']->id, 'qty' => 25000.00]);
+        \App\Models\BahanPackaging::create(['proses_packaging_id' => $pack1->id, 'produk_id' => $productModels['KARTON']->id, 'storage_id' => $storageModels['Penyimpanan Karton']->id, 'qty' => 2500.00]);
+        \App\Models\BahanPackaging::create(['proses_packaging_id' => $pack1->id, 'produk_id' => $productModels['POUCH']->id, 'storage_id' => $storageModels['Penyimpanan Pouch']->id, 'qty' => 25000.00]);
+        \App\Models\HasilPackaging::create(['proses_packaging_id' => $pack1->id, 'produk_id' => $productModels['K-MINYAKITA']->id, 'storage_id' => $storageModels['Gudang Kemasan Retail']->id, 'qty' => 2500.00]);
+
+        $pack2 = \App\Models\ProsesPackaging::create([
+            'tgl' => '2026-07-06',
+            'shift' => '2',
+            'catatan' => 'Packaging Salvaco'
+        ]);
+        \App\Models\BahanPackaging::create(['proses_packaging_id' => $pack2->id, 'produk_id' => $productModels['OL-IV56']->id, 'storage_id' => $storageModels['Tangki Olein IV56 01']->id, 'qty' => 30000.00]);
+        \App\Models\BahanPackaging::create(['proses_packaging_id' => $pack2->id, 'produk_id' => $productModels['KARTON']->id, 'storage_id' => $storageModels['Penyimpanan Karton']->id, 'qty' => 3000.00]);
+        \App\Models\BahanPackaging::create(['proses_packaging_id' => $pack2->id, 'produk_id' => $productModels['POUCH']->id, 'storage_id' => $storageModels['Penyimpanan Pouch']->id, 'qty' => 30000.00]);
+        \App\Models\HasilPackaging::create(['proses_packaging_id' => $pack2->id, 'produk_id' => $productModels['K-SALVACO']->id, 'storage_id' => $storageModels['Gudang Kemasan Retail']->id, 'qty' => 3000.00]);
+
+        // 12. Sales Contracts & Shipments Seeders
+        $salimIvomas = Buyer::first();
+
+        // Contract 1: Salim Ivomas buys RBDPO (1,000,000 Kg @ Rp 16,500)
+        $sc1 = \App\Models\KontrakPenjualan::create([
+            'buyer_id' => $salimIvomas->id,
+            'produk_id' => $productModels['RBDPO']->id,
+            'nomor_kontrak' => 'SALES-2026-001',
+            'qty' => 1000000.00,
+            'harga_satuan' => 16500.00,
+            'tgl_kontrak' => '2026-07-01',
+            'tgl_jatuh_tempo' => '2026-08-01',
+            'termin_pembayaran' => 'CAD',
+            'status' => 'aktif',
+        ]);
+
+        // Contract 2: Wings buys Olein IV56 (500,000 Kg @ Rp 16,800)
+        $wings = Buyer::create([
+            'nama' => 'PT Wings Surya',
+            'alamat' => 'Jl. Kalibutuh 189, Surabaya',
+            'pic' => 'Hendra Wijaya',
+            'telepon' => '031-5322300',
+            'email' => 'hendra.wings@wingscorp.com',
+        ]);
+
+        $sc2 = \App\Models\KontrakPenjualan::create([
+            'buyer_id' => $wings->id,
+            'produk_id' => $productModels['OL-IV56']->id,
+            'nomor_kontrak' => 'SALES-2026-002',
+            'qty' => 500000.00,
+            'harga_satuan' => 16800.00,
+            'tgl_kontrak' => '2026-07-02',
+            'tgl_jatuh_tempo' => '2026-08-02',
+            'termin_pembayaran' => 'CBD',
+            'status' => 'aktif',
+        ]);
+
+        // 13. Sales Payments
+        \App\Models\PembayaranPenjualan::create([
+            'kontrak_penjualan_id' => $sc1->id,
+            'nominal' => 5000000000.00,
+            'tgl_bayar' => '2026-07-03',
+            'catatan' => 'Uang Muka Tahap 1',
+        ]);
+
+        \App\Models\PembayaranPenjualan::create([
+            'kontrak_penjualan_id' => $sc2->id,
+            'nominal' => 8400000000.00,
+            'tgl_bayar' => '2026-07-02',
+            'catatan' => 'Pelunasan CBD',
+        ]);
+
+        // 14. Sales Shipments (Pengiriman Penjualan)
+        // Shipment 1: Send 250,000 Kg RBDPO from Tangki RBDPO 01
+        $ship1 = \App\Models\PengirimanPenjualan::create([
+            'kontrak_penjualan_id' => $sc1->id,
+            'qty_kirim' => 250000.00,
+            'qty_terima' => 250000.00,
+            'via' => 'Kapal Tanker',
+            'termin' => 'CAD',
+            'status' => 'Selesai',
+            'incoterm' => 'FRANCO',
+            'tgl' => '2026-07-04',
+            'storage_id' => $storageModels['Tangki RBDPO 01']->id,
+        ]);
+
+        $st1 = StokProduk::where('produk_id', $productModels['RBDPO']->id)
+            ->where('storage_id', $storageModels['Tangki RBDPO 01']->id)
+            ->first();
+        if ($st1) {
+            $st1->decrement('qty', 250000.00);
+        }
+
+        \App\Models\Invoice::create([
+            'pengiriman_id' => $ship1->id,
+            'nomor_invoice' => 'INV-SALES-001',
+            'nilai' => 250000.00 * 16500.00,
+            'tgl_invoice' => '2026-07-04',
+            'tgl_jatuh_tempo' => '2026-08-04',
+            'status' => 'terkirim',
+        ]);
+
+        // Shipment 2: Send 100,000 Kg Olein IV56 from Tangki Olein IV56 01
+        $ship2 = \App\Models\PengirimanPenjualan::create([
+            'kontrak_penjualan_id' => $sc2->id,
+            'qty_kirim' => 100000.00,
+            'qty_terima' => 100000.00,
+            'via' => 'Truck Fuso',
+            'termin' => 'CBD',
+            'status' => 'Selesai',
+            'incoterm' => 'LOCO',
+            'tgl' => '2026-07-05',
+            'storage_id' => $storageModels['Tangki Olein IV56 01']->id,
+        ]);
+
+        $st2 = StokProduk::where('produk_id', $productModels['OL-IV56']->id)
+            ->where('storage_id', $storageModels['Tangki Olein IV56 01']->id)
+            ->first();
+        if ($st2) {
+            $st2->decrement('qty', 100000.00);
+        }
+
+        \App\Models\Invoice::create([
+            'pengiriman_id' => $ship2->id,
+            'nomor_invoice' => 'INV-SALES-002',
+            'nilai' => 100000.00 * 16800.00,
+            'tgl_invoice' => '2026-07-05',
+            'tgl_jatuh_tempo' => '2026-08-05',
+            'status' => 'lunas',
         ]);
     }
 }
