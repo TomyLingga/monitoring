@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\DailyProductionTargetController;
 use App\Http\Controllers\Api\StokProdukController;
 use App\Http\Controllers\Api\PengirimanPenjualanController;
 use App\Http\Controllers\Api\PembayaranPenjualanController;
+use App\Http\Controllers\Api\DailySalesTargetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('kontrak-penjualans', KontrakPenjualanController::class);
     Route::apiResource('pengiriman-penjualans', PengirimanPenjualanController::class);
     Route::apiResource('pembayaran-penjualans', PembayaranPenjualanController::class);
+    Route::apiResource('daily-sales-targets', DailySalesTargetController::class);
 
     // ── Produksi ──
     Route::apiResource('proses-refineries', ProsesRefineryController::class);
