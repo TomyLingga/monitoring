@@ -23,6 +23,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        \App\Models\BankTransaction::observe(\App\Observers\BankTransactionObserver::class);
     }
 }

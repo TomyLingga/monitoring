@@ -11,7 +11,7 @@ class PembayaranCpo extends Model
 
     protected $fillable = [
         'kontrak_cpo_id', 'nominal', 'tgl_bayar',
-        'metode_bayar', 'bukti_bayar', 'catatan'
+        'metode_bayar', 'bukti_bayar', 'catatan', 'bank_account_id'
     ];
 
     protected $casts = [

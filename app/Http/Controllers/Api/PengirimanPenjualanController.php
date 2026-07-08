@@ -50,7 +50,7 @@ class PengirimanPenjualanController extends Controller
             $productId = $kontrak->produk_id;
 
             // 1. Allocate and deduct stock
-            $this->allocateAndDeductStock($productId, $qtyKirim, $request->storage_id);
+            $deductions = $this->allocateAndDeductStock($productId, $qtyKirim, $request->storage_id);
 
             // 2. Create Shipment record
             $shipment = PengirimanPenjualan::create([
@@ -64,6 +64,10 @@ class PengirimanPenjualanController extends Controller
                 'tgl'                  => $request->tgl,
                 'storage_id'           => $request->storage_id,
             ]);
+
+            foreach ($deductions as $d) {
+                $shipment->storageSources()->create($d);
+            }
 
             // 3. Create Invoice if requested
             if ($request->create_invoice && $request->nomor_invoice) {
@@ -83,7 +87,7 @@ class PengirimanPenjualanController extends Controller
     public function show($id)
     {
         return response()->json(
-            PengirimanPenjualan::with(['kontrakPenjualan.buyer', 'kontrakPenjualan.produk', 'storage', 'invoices'])->findOrFail($id)
+            PengirimanPenjualan::with(['kontrakPenjualan.buyer', 'kontrakPenjualan.produk', 'storage', 'invoices', 'storageSources.storage'])->findOrFail($id)
         );
     }
 
@@ -109,10 +113,10 @@ class PengirimanPenjualanController extends Controller
             $productId = $kontrak->produk_id;
 
             // Revert old shipment stock
-            $this->revertStock($productId, (float)$shipment->qty_kirim, $shipment->storage_id);
+            $this->revertStock($shipment);
 
             // Allocate new stock
-            $this->allocateAndDeductStock($productId, (float)$request->qty_kirim, $request->storage_id);
+            $deductions = $this->allocateAndDeductStock($productId, (float)$request->qty_kirim, $request->storage_id);
 
             $shipment->update([
                 'kontrak_penjualan_id' => $request->kontrak_penjualan_id,
@@ -125,6 +129,10 @@ class PengirimanPenjualanController extends Controller
                 'tgl'                  => $request->tgl,
                 'storage_id'           => $request->storage_id,
             ]);
+
+            foreach ($deductions as $d) {
+                $shipment->storageSources()->create($d);
+            }
 
             // Update associated invoice value if it exists
             $invoice = $shipment->invoices()->first();
@@ -143,12 +151,7 @@ class PengirimanPenjualanController extends Controller
         $shipment = PengirimanPenjualan::findOrFail($id);
 
         DB::transaction(function () use ($shipment) {
-            $kontrak = KontrakPenjualan::findOrFail($shipment->kontrak_penjualan_id);
-            $productId = $kontrak->produk_id;
-
-            // Revert stock
-            $this->revertStock($productId, (float)$shipment->qty_kirim, $shipment->storage_id);
-
+            $this->revertStock($shipment);
             $shipment->delete();
         });
 
@@ -158,6 +161,7 @@ class PengirimanPenjualanController extends Controller
     private function allocateAndDeductStock($productId, $qty, $preferredStorageId = null)
     {
         $remaining = $qty;
+        $deductions = [];
 
         if ($preferredStorageId) {
             $stok = StokProduk::where('produk_id', $productId)
@@ -165,9 +169,10 @@ class PengirimanPenjualanController extends Controller
                 ->first();
 
             if ($stok && $stok->qty > 0) {
-                $toDeduct = min($remaining, $stok->qty);
+                $toDeduct = min($remaining, (float)$stok->qty);
                 $stok->decrement('qty', $toDeduct);
                 $remaining -= $toDeduct;
+                $deductions[] = ['storage_id' => $preferredStorageId, 'qty' => $toDeduct];
             }
         }
 
@@ -177,15 +182,16 @@ class PengirimanPenjualanController extends Controller
                 ->when($preferredStorageId, function ($query) use ($preferredStorageId) {
                     return $query->where('storage_id', '!=', $preferredStorageId);
                 })
-                ->orderBy('qty', 'asc')
+                ->orderBy('qty', 'asc') // Paling sedikit dulu
                 ->get();
 
             foreach ($stocks as $stok) {
                 if ($remaining <= 0) break;
 
-                $toDeduct = min($remaining, $stok->qty);
+                $toDeduct = min($remaining, (float)$stok->qty);
                 $stok->decrement('qty', $toDeduct);
                 $remaining -= $toDeduct;
+                $deductions[] = ['storage_id' => $stok->storage_id, 'qty' => $toDeduct];
             }
         }
 
@@ -206,25 +212,42 @@ class PengirimanPenjualanController extends Controller
                     ['qty' => 0]
                 );
                 $stok->decrement('qty', $remaining);
+                $deductions[] = ['storage_id' => $fallbackStorageId, 'qty' => $remaining];
             }
         }
+
+        return $deductions;
     }
 
-    private function revertStock($productId, $qty, $storageId = null)
+    private function revertStock($shipment)
     {
-        if ($storageId) {
-            $stok = StokProduk::where('produk_id', $productId)
-                ->where('storage_id', $storageId)
-                ->first();
-            if ($stok) {
-                $stok->increment('qty', $qty);
-                return;
-            }
-        }
+        $productId = $shipment->kontrakPenjualan->produk_id;
 
-        $stok = StokProduk::where('produk_id', $productId)->first();
-        if ($stok) {
-            $stok->increment('qty', $qty);
+        if ($shipment->storageSources()->exists()) {
+            foreach ($shipment->storageSources as $source) {
+                $stok = StokProduk::firstOrCreate(
+                    ['produk_id' => $productId, 'storage_id' => $source->storage_id],
+                    ['qty' => 0]
+                );
+                $stok->increment('qty', $source->qty);
+            }
+            $shipment->storageSources()->delete();
+        } else {
+            // Legacy revert
+            if ($shipment->storage_id) {
+                $stok = StokProduk::where('produk_id', $productId)
+                    ->where('storage_id', $shipment->storage_id)
+                    ->first();
+                if ($stok) {
+                    $stok->increment('qty', $shipment->qty_kirim);
+                    return;
+                }
+            }
+
+            $stok = StokProduk::where('produk_id', $productId)->first();
+            if ($stok) {
+                $stok->increment('qty', $shipment->qty_kirim);
+            }
         }
     }
 }

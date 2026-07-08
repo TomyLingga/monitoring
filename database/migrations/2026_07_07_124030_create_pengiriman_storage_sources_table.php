@@ -15,6 +15,9 @@ class CreatePengirimanStorageSourcesTable extends Migration
     {
         Schema::create('pengiriman_storage_sources', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('pengiriman_penjualan_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('storage_id')->constrained()->cascadeOnDelete();
+            $table->decimal('qty', 15, 2);
             $table->timestamps();
         });
     }

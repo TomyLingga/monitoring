@@ -12,7 +12,7 @@ class PembayaranPenjualan extends Model
     protected $table = 'pembayaran_penjualans';
 
     protected $fillable = [
-        'kontrak_penjualan_id', 'nominal', 'tgl_bayar', 'catatan'
+        'kontrak_penjualan_id', 'nominal', 'tgl_bayar', 'catatan', 'invoice_id', 'bank_account_id'
     ];
 
     protected $casts = [

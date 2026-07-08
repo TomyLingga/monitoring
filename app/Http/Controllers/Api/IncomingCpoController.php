@@ -46,6 +46,16 @@ class IncomingCpoController extends Controller
             if ($hasOtherProduct) {
                 return response()->json(['message' => 'Gagal: Tangki ini spesifik untuk produk lain dan sudah terisi.'], 422);
             }
+
+            // Kapasitas Check
+            $currentStock = StokProduk::where('storage_id', $storage->id)->sum('qty');
+            $remainingCapacity = $storage->kapasitas - $currentStock;
+            if ($data['qty_terima'] > $remainingCapacity) {
+                return response()->json([
+                    'message' => 'Gagal: Qty Terima melebihi sisa kapasitas tangki.',
+                    'remaining_capacity' => $remainingCapacity
+                ], 422);
+            }
         }
 
         return DB::transaction(function () use ($data, $cpoProduct) {
@@ -92,6 +102,16 @@ class IncomingCpoController extends Controller
                 ->exists();
             if ($hasOtherProduct) {
                 return response()->json(['message' => 'Gagal: Tangki ini spesifik untuk produk lain dan sudah terisi.'], 422);
+            }
+
+            // Kapasitas Check
+            $currentStock = StokProduk::where('storage_id', $storage->id)->sum('qty');
+            $remainingCapacity = $storage->kapasitas - ($currentStock - $incomingCpo->qty_terima);
+            if ($data['qty_terima'] > $remainingCapacity) {
+                return response()->json([
+                    'message' => 'Gagal: Qty Terima melebihi sisa kapasitas tangki.',
+                    'remaining_capacity' => $remainingCapacity
+                ], 422);
             }
         }
 

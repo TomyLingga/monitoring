@@ -16,4 +16,5 @@ class PengirimanPenjualan extends Model
     public function invoices() { return $this->hasMany(Invoice::class, 'pengiriman_id'); }
     public function truckings() { return $this->hasMany(Trucking::class, 'pengiriman_id'); }
     public function storage() { return $this->belongsTo(Storage::class, 'storage_id'); }
+    public function storageSources() { return $this->hasMany(PengirimanStorageSource::class); }
 }

@@ -132,9 +132,23 @@ class LevyDutySeeder extends Seeder
                 'updated_at'      => now(),
             ]);
 
+            // --- Pastikan Bank Account ada ---
+            $bankAccountId = DB::table('bank_accounts')->first()?->id;
+            if (!$bankAccountId) {
+                $bankAccountId = DB::table('bank_accounts')->insertGetId([
+                    'bank_name' => 'BCA',
+                    'account_name' => 'PT Makmur Sejahtera',
+                    'account_number' => '876543210',
+                    'currency' => 'IDR',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
             // 4. Levy Duty
             DB::table('levy_duties')->insert([
                 'invoice_id'  => $invoiceId,
+                'bank_account_id' => $bankAccountId,
                 'kapal'       => $e['kapal'],
                 'tarif'       => $e['tarif'],
                 'kurs'        => $e['kurs'],
