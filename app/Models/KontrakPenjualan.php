@@ -8,8 +8,8 @@ class KontrakPenjualan extends Model
     use HasFactory;
 
     protected $fillable = [
-        'buyer_id', 'produk_id', 'nomor_kontrak', 'qty', 'harga_satuan',
-        'tgl_kontrak', 'tgl_jatuh_tempo', 'termin_pembayaran', 'status'
+        'buyer_id', 'produk_id', 'nomor_kontrak', 'jenis', 'mata_uang', 'incoterm',
+        'qty', 'harga_satuan', 'tgl_kontrak', 'tgl_jatuh_tempo', 'termin_pembayaran', 'status'
     ];
 
     protected $casts = [
@@ -19,7 +19,7 @@ class KontrakPenjualan extends Model
         'tgl_jatuh_tempo' => 'date',
     ];
 
-    protected $appends = ['total_terkirim', 'outstanding_qty', 'total_nilai_kontrak', 'total_terbayar', 'outstanding_payment'];
+    protected $appends = ['total_terkirim', 'outstanding_qty', 'total_nilai_kontrak', 'total_terbayar', 'outstanding_payment', 'proyeksi_pendapatan'];
 
     public function buyer() { return $this->belongsTo(Buyer::class); }
     public function produk() { return $this->belongsTo(MasterProduk::class, 'produk_id'); }
@@ -49,5 +49,11 @@ class KontrakPenjualan extends Model
     public function getOutstandingPaymentAttribute()
     {
         return max(0.0, $this->total_nilai_kontrak - $this->total_terbayar);
+    }
+
+    /** Proyeksi pendapatan = outstanding qty × harga satuan */
+    public function getProyeksiPendapatanAttribute()
+    {
+        return max(0.0, (float) $this->outstanding_qty * (float) $this->harga_satuan);
     }
 }

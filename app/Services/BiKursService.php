@@ -62,12 +62,7 @@ class BiKursService
             return $data;
         } catch (\Throwable $e) {
             \Log::warning('BI UKA fetch failed: ' . $e->getMessage());
-            // Return mock data so the app doesn't break when BI is blocking
-            return [
-                ['id' => 1, 'nilai' => 15000, 'beli' => 14900, 'jual' => 15100, 'tanggal' => date('Y-m-d'), 'mata_uang' => 'USD'],
-                ['id' => 2, 'nilai' => 15050, 'beli' => 14950, 'jual' => 15150, 'tanggal' => date('Y-m-d', strtotime('-1 days')), 'mata_uang' => 'USD'],
-                ['id' => 3, 'nilai' => 14980, 'beli' => 14880, 'jual' => 15080, 'tanggal' => date('Y-m-d', strtotime('-2 days')), 'mata_uang' => 'USD']
-            ];
+            return $this->getFallbackRates($startdate, $enddate, false);
         }
     }
 
@@ -99,10 +94,10 @@ class BiKursService
                 ->timeout(30)
                 ->send('POST', $this->baseUrl, ['body' => $soap]);
 
-            if (!$response->successful()) return [];
+            if (!$response->successful()) return $this->getFallbackRates($startDate, $endDate, true);
 
             $xml = simplexml_load_string($response->body());
-            if ($xml === false) return [];
+            if ($xml === false) return $this->getFallbackRates($startDate, $endDate, true);
 
             $xml->registerXPathNamespace('diffgr', 'urn:schemas-microsoft-com:xml-diffgram-v1');
             $tables = $xml->xpath('//diffgr:diffgram//*[local-name()="Table"]');
@@ -125,11 +120,56 @@ class BiKursService
             return $data;
         } catch (\Throwable $e) {
             \Log::warning('BI JISDOR fetch failed: ' . $e->getMessage());
-            // Return mock data so the app doesn't break when BI is blocking
+            return $this->getFallbackRates($startDate, $endDate, true);
+        }
+    }
+
+    /**
+     * Fallback rates using Frankfurter API
+     */
+    protected function getFallbackRates(string $startDate, string $endDate, bool $isJisdor): array
+    {
+        try {
+            $url = "https://api.frankfurter.app/" . urlencode($startDate) . ".." . urlencode($endDate) . "?from=USD&to=IDR";
+            $response = Http::timeout(15)->get($url);
+            if ($response->successful()) {
+                $body = $response->json();
+                $rates = $body['rates'] ?? [];
+                $data = [];
+                $id = 1;
+                foreach ($rates as $date => $val) {
+                    $rateVal = (float) ($val['IDR'] ?? 0);
+                    $data[] = [
+                        'id'        => $id++,
+                        'nilai'     => $rateVal,
+                        'beli'      => $isJisdor ? null : ($rateVal - 100),
+                        'jual'      => $isJisdor ? null : ($rateVal + 100),
+                        'tanggal'   => $date,
+                        'mata_uang' => 'USD',
+                    ];
+                }
+                // Sort by date descending
+                usort($data, function($a, $b) {
+                    return strcmp($b['tanggal'], $a['tanggal']);
+                });
+                return $data;
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Frankfurter fallback fetch failed: ' . $e->getMessage());
+        }
+
+        // Ultimate fallback if even Frankfurter is down
+        if ($isJisdor) {
             return [
                 ['id' => 1, 'nilai' => 15000, 'beli' => null, 'jual' => null, 'tanggal' => date('Y-m-d'), 'mata_uang' => 'USD'],
                 ['id' => 2, 'nilai' => 15050, 'beli' => null, 'jual' => null, 'tanggal' => date('Y-m-d', strtotime('-1 days')), 'mata_uang' => 'USD'],
                 ['id' => 3, 'nilai' => 14980, 'beli' => null, 'jual' => null, 'tanggal' => date('Y-m-d', strtotime('-2 days')), 'mata_uang' => 'USD']
+            ];
+        } else {
+            return [
+                ['id' => 1, 'nilai' => 15000, 'beli' => 14900, 'jual' => 15100, 'tanggal' => date('Y-m-d'), 'mata_uang' => 'USD'],
+                ['id' => 2, 'nilai' => 15050, 'beli' => 14950, 'jual' => 15150, 'tanggal' => date('Y-m-d', strtotime('-1 days')), 'mata_uang' => 'USD'],
+                ['id' => 3, 'nilai' => 14980, 'beli' => 14880, 'jual' => 15080, 'tanggal' => date('Y-m-d', strtotime('-2 days')), 'mata_uang' => 'USD']
             ];
         }
     }

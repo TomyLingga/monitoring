@@ -101,6 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('logistic-additional-pes/bulk', [LogisticAdditionalPeController::class, 'bulkStore']);
     Route::post('logistic-pe-usages/bulk', [LogisticPeUsageController::class, 'bulkStore']);
     
+    Route::get('truckings/summary', [TruckingController::class, 'summary']);
     Route::apiResource('truckings', TruckingController::class);
     Route::apiResource('logistic-pe-targets', LogisticPeTargetController::class);
     Route::apiResource('logistic-additional-pes', LogisticAdditionalPeController::class);

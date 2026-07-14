@@ -10,7 +10,7 @@ class KontrakCpo extends Model
     use HasFactory;
 
     protected $fillable = [
-        'supplier_id', 'nomor_kontrak', 'qty', 'harga_per_kg',
+        'supplier_id', 'nomor_kontrak', 'jenis', 'mata_uang', 'qty', 'harga_per_kg',
         'cbd_cad', 'tgl_kontrak', 'tgl_jatuh_tempo', 'status', 'is_closed'
     ];
 
