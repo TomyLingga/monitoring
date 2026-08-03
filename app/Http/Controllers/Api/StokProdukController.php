@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers\Api;
-
 use App\Http\Controllers\Controller;
 use App\Models\StokProduk;
 use Illuminate\Http\Request;
@@ -10,52 +8,43 @@ class StokProdukController extends Controller
 {
     public function index()
     {
-        return response()->json(StokProduk::with(['produk', 'storage'])->get());
+        return StokProduk::with(['storage','produk'])->get();
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'produk_id'  => 'required|exists:master_produks,id',
-            'storage_id' => 'required|exists:storages,id',
-            'qty'        => 'required|numeric|min:0',
+        $data = $request->validate([
+            'storage_id'   => 'required|exists:storages,id',
+            'produk_id'    => 'required|exists:master_produks,id',
+            'qty'          => 'required|numeric|min:0',
+            'harga_satuan' => 'nullable|numeric|min:0',
+            'mata_uang'    => 'nullable|in:IDR,USD',
+            'tgl_update'   => 'nullable|date',
+            'keterangan'   => 'nullable|string',
         ]);
-
         $stok = StokProduk::updateOrCreate(
-            [
-                'produk_id'  => $request->produk_id,
-                'storage_id' => $request->storage_id,
-            ],
-            [
-                'qty' => $request->qty,
-            ]
+            ['storage_id' => $data['storage_id'], 'produk_id' => $data['produk_id']],
+            $data
         );
-
-        return response()->json($stok->load(['produk', 'storage']), 201);
+        return $stok->load(['storage','produk']);
     }
 
-    public function show($id)
+    public function update(Request $request, StokProduk $stokProduk)
     {
-        return response()->json(StokProduk::with(['produk', 'storage'])->findOrFail($id));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'produk_id'  => 'nullable|exists:master_produks,id',
-            'storage_id' => 'nullable|exists:storages,id',
-            'qty'        => 'required|numeric|min:0',
+        $data = $request->validate([
+            'qty'          => 'required|numeric|min:0',
+            'harga_satuan' => 'nullable|numeric|min:0',
+            'mata_uang'    => 'nullable|in:IDR,USD',
+            'tgl_update'   => 'nullable|date',
+            'keterangan'   => 'nullable|string',
         ]);
-
-        $stok = StokProduk::findOrFail($id);
-        $stok->update($request->only(['produk_id', 'storage_id', 'qty']));
-
-        return response()->json($stok->load(['produk', 'storage']));
+        $stokProduk->update($data);
+        return $stokProduk->load(['storage','produk']);
     }
 
-    public function destroy($id)
+    public function destroy(StokProduk $stokProduk)
     {
-        StokProduk::findOrFail($id)->delete();
-        return response()->json(['message' => 'Stok produk berhasil dihapus']);
+        $stokProduk->delete();
+        return response()->json(['message' => 'Stok dihapus']);
     }
 }

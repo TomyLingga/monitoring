@@ -1,41 +1,12 @@
 <?php
-
 namespace App\Http\Controllers\Api;
-
 use App\Http\Controllers\Controller;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
-
-class SupplierController extends Controller
-{
-    public function index() { return Supplier::withCount('kontrakCpos')->latest()->get(); }
-
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'nama' => 'required|string', 'alamat' => 'nullable|string',
-            'telepon' => 'nullable|string', 'email' => 'nullable|email', 'pic' => 'nullable|string',
-            'keterangan' => 'nullable|string|in:lokal,impor',
-        ]);
-        return Supplier::create($data);
-    }
-
-    public function show(Supplier $supplier) { return $supplier->load('kontrakCpos'); }
-
-    public function update(Request $request, Supplier $supplier)
-    {
-        $data = $request->validate([
-            'nama' => 'required|string', 'alamat' => 'nullable|string',
-            'telepon' => 'nullable|string', 'email' => 'nullable|email', 'pic' => 'nullable|string',
-            'keterangan' => 'nullable|string|in:lokal,impor',
-        ]);
-        $supplier->update($data);
-        return $supplier;
-    }
-
-    public function destroy(Supplier $supplier)
-    {
-        $supplier->delete();
-        return response()->json(['message' => 'Supplier berhasil dihapus']);
-    }
+class SupplierController extends Controller {
+    public function index() { return Supplier::latest()->get(); }
+    public function store(Request $r) { return Supplier::create($r->validate(['nama'=>'required','kode'=>'nullable','alamat'=>'nullable','kontak'=>'nullable','keterangan'=>'nullable'])); }
+    public function show(Supplier $s) { return $s; }
+    public function update(Request $r, Supplier $supplier) { $supplier->update($r->validate(['nama'=>'required','kode'=>'nullable','alamat'=>'nullable','kontak'=>'nullable','keterangan'=>'nullable'])); return $supplier; }
+    public function destroy(Supplier $supplier) { $supplier->delete(); return response()->json(['message'=>'OK']); }
 }

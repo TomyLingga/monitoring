@@ -1,49 +1,12 @@
 <?php
-
 namespace App\Http\Controllers\Api;
-
 use App\Http\Controllers\Controller;
-use App\Models\Storage as StorageModel;
+use App\Models\Storage;
 use Illuminate\Http\Request;
-
-class StorageController extends Controller
-{
-    public function index()
-    {
-        return StorageModel::with('stokProduks.produk')->get();
-    }
-
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'nama' => 'required|string',
-            'lokasi' => 'nullable|string',
-            'kapasitas' => 'required|numeric|min:0',
-            'jenis' => 'required|in:tangki,gudang',
-        ]);
-        return StorageModel::create($data);
-    }
-
-    public function show(StorageModel $storage)
-    {
-        return $storage->load('stokProduks.produk');
-    }
-
-    public function update(Request $request, StorageModel $storage)
-    {
-        $data = $request->validate([
-            'nama' => 'required|string',
-            'lokasi' => 'nullable|string',
-            'kapasitas' => 'required|numeric|min:0',
-            'jenis' => 'required|in:tangki,gudang',
-        ]);
-        $storage->update($data);
-        return $storage;
-    }
-
-    public function destroy(StorageModel $storage)
-    {
-        $storage->delete();
-        return response()->json(['message' => 'Storage berhasil dihapus']);
-    }
+class StorageController extends Controller {
+    public function index() { return Storage::latest()->get(); }
+    public function store(Request $r) { return Storage::create($r->validate(['nama'=>'required','kode'=>'nullable','tipe'=>'nullable|in:tangki,gudang,silo,lainnya','kapasitas'=>'nullable|numeric','lokasi'=>'nullable','keterangan'=>'nullable'])); }
+    public function show(Storage $s) { return $s; }
+    public function update(Request $r, Storage $storage) { $storage->update($r->validate(['nama'=>'required','kode'=>'nullable','tipe'=>'nullable|in:tangki,gudang,silo,lainnya','kapasitas'=>'nullable|numeric','lokasi'=>'nullable','keterangan'=>'nullable'])); return $storage; }
+    public function destroy(Storage $storage) { $storage->delete(); return response()->json(['message'=>'OK']); }
 }

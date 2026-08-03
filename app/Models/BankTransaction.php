@@ -1,26 +1,13 @@
 <?php
-
 namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class BankTransaction extends Model
-{
-    use HasFactory;
-
+class BankTransaction extends Model {
     protected $fillable = [
-        'bank_account_id',
-        'type',
-        'amount',
-        'transaction_date',
-        'description',
-        'reference_type',
-        'reference_id'
+        'bank_account_id','tgl_transaksi','tipe','nominal','mata_uang',
+        'kurs','kategori','referensi','transactable_type','transactable_id','keterangan'
     ];
-
-    public function bankAccount()
-    {
-        return $this->belongsTo(BankAccount::class);
-    }
+    protected $casts = ['nominal'=>'decimal:2','kurs'=>'decimal:2','tgl_transaksi'=>'date'];
+    public function bankAccount() { return $this->belongsTo(BankAccount::class); }
+    public function transactable() { return $this->morphTo(); }
 }
